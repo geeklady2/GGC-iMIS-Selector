@@ -1,0 +1,3 @@
+This is a file filled with non-sense.
+
+It's to test what happens when a file not in csv file format is read.
