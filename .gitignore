@@ -1,3 +1,5 @@
 .DS_store
 *3rd_party*
 *~
+*.pyc
+*.idea*
