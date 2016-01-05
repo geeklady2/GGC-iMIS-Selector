@@ -84,7 +84,7 @@ def select_numbers(file_path=None, how_many=3, make_backup=False, use_all=False)
     return selected_members
 
 
-def main():
+def parser():
     """
     The main function of the whole program.  The arguments used when calling the
     application determines which mode it is run in as well as the files that are
@@ -111,33 +111,85 @@ def main():
     :return: None
     """
     parser = argparse.ArgumentParser(description='iMIS number selector and data file manager.')
-    parser.add_argument('-version', action='version', version='%(prog)s '+str(__version__))
-    parser.add_argument('-i', dest='imis_file',
-                        help='Fully specified file path to the iMIS data file in csv format.')
-    parser.add_argument('-n', type=int, dest='num', default='10',
-                        help='Number of iMIS numbers to select.')
+    parser.add_argument('-v', '--version', action='version', version='%(prog)s '+str(__version__))
+    parser.add_argument('-vb', '--verbose', action='store_true',
+                        help='Run verbosely, display more processing details.')
+
+    select_help = \
+        """Select a set of active iMIS numbers\n
+            -i --imis_file     File path to an iMIS data file in csv format.\n
+            -n --num           Number of iMIS numbers to select.\n
+            -r --reuse         Re-use iMIS numbers that have been selected before.\n
+            -b --backup        Create a back-up of the iMIS data file before altering it.\n
+        """
+    subparsers = parser.add_subparsers()
+    parser_select = subparsers.add_parser('select', help=select_help)
+    parser_select.add_argument('-i', '--imis_file', dest='imis_file', required=True,
+                               help='Fully specified file path to the iMIS data file in csv format.')
+    parser_select.add_argument('-n', '--num', type=int, dest='num', default='10',
+                               help='Number of iMIS numbers to select.')
+    parser_select.add_argument('-r', '--reuse', action='store_true', dest='reuse',
+                               help='If provided, re-use previously selected iMIS numbers.')
+    parser_select.add_argument('-b', '--backup', action='store_true', dest='backup',
+                               help='If provided, backup any altered iMIS data file.')
 
 
-    parser.add_argument('-c', type=str, dest='current_imis_file',
-                        help='Fully specified file path to the iMIS data file in csv format.')
-    parser.add_argument('-m', type=str, dest='imis_member_file',
-                        help='Fully specified file path to the iMIS Member List in csv format.')
+    parser_merge = subparsers.add_parser('merge', help='Merge two iMIS data files together into one.')
+    parser_merge.add_argument('-i', '--imis_file', type=str, dest='imis_file', required=True,
+                              help='File path to the iMIS data file in csv format.')
+    parser_merge.add_argument('-m', '--members', type=str, dest='member_file', required=True,
+                              help='File path to the iMIS Member List generate by iMIS in csv format.')
+    parser_merge.add_argument('-b', '--backup', action='store_true', dest='backup',
+                              help='If provided, backup any altered iMIS data file.')
 
-    parser.add_argument('-r', action='store_true', dest='reuse',
-                        help='If provided, re-use previously selected iMIS numbers.')
-    parser.add_argument('-b', action='store_true', dest='backup',
-                        help='If provided, backup any altered iMIS data file.')
+    # Create a group to group the command-line arguments together
+    #mutex_group = parser.add_mutually_exclusive_group()
 
-    args = parser.parse_args()
-    if args.imis_file:
-        select_numbers(args.imis_file, args.num, args.backup, args.reuse)
-    elif args.current_imis_file:
-        update_data(args.current_imis_file, args.imis_member_file, args.backup)
+    # # Group 1 is the arguments for selecting iMIS numbers
+    # group1 = mutex_group.add_argument_group('select', 'Select a set of active iMIS numbers.')
+    # group2 = mutex_group.add_argument_group('merge', 'Merge iMIS data files together.')
+    #
+    #
+    # group1.add_argument('-i', dest='imis_file',
+    #                     help='Fully specified file path to the iMIS data file in csv format.')
+    # group1.add_argument('-n', type=int, dest='num', default='10',
+    #                     help='Number of iMIS numbers to select.')
+    # group1.add_argument('-r', action='store_true', dest='reuse',
+    #                     help='If provided, re-use previously selected iMIS numbers.')
+    # group1.add_argument('-b', action='store_true', dest='backup',
+    #                     help='If provided, backup any altered iMIS data file.')
+
+    # Group 2 is for merging data files
+    #group2 = mutex_group.add_argument_group('merge')
+    #mutex_group.add_argument('-c', type=str, dest='current_imis_file',
+    #                    help='Fully specified file path to the iMIS data file in csv format.')
+    # group2.add_argument('-m', type=str, dest='imis_member_file',
+    #                     help='Fully specified file path to the iMIS Member List in csv format.')
+    # group2.add_argument('-k', action='store_true', dest='backup2',
+    #                     help='If provided, backup any altered iMIS data file.')
+
+    return parser
+
+def main(cli_args):
+    try:
+        the_parser = parser()
+        parsed_args = the_parser.parse_args(cli_args)
+    except Exception as e:
+        print(str(e))
+        return -1
+
+    if hasattr(parsed_args, 'imis_file') and hasattr(parsed_args, 'num'):
+        select_numbers(parsed_args.imis_file, parsed_args.num, parsed_args.backup, parsed_args.reuse)
+    elif hasattr(parsed_args, 'imis_file') and hasattr(parsed_args, 'member_file'):
+        update_data(parsed_args.imis_file, parsed_args.member_file, parsed_args.backup)
     else:
-        parser.error("One of -i or -c must be specified.")
+        the_parser.error("\"merged\" or \"select\" must be specified.")
+        return -1
 
 
+    return 0
 
 
 if __name__ == '__main__':
-    main()
+    import sys
+    sys.exit(main(sys.argv[1:]))
