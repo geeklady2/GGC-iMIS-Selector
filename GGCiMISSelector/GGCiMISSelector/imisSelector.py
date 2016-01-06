@@ -112,18 +112,16 @@ def parser():
     """
     parser = argparse.ArgumentParser(description='iMIS number selector and data file manager.')
     parser.add_argument('-v', '--version', action='version', version='%(prog)s '+str(__version__))
-    parser.add_argument('-vb', '--verbose', action='store_true',
-                        help='Run verbosely, display more processing details.')
 
-    select_help = \
-        """Select a set of active iMIS numbers\n
-            -i --imis_file     File path to an iMIS data file in csv format.\n
+    select_options = \
+        """ -i --imis_file     File path to an iMIS data file in csv format.\n
             -n --num           Number of iMIS numbers to select.\n
             -r --reuse         Re-use iMIS numbers that have been selected before.\n
             -b --backup        Create a back-up of the iMIS data file before altering it.\n
         """
     subparsers = parser.add_subparsers()
-    parser_select = subparsers.add_parser('select', help=select_help)
+    parser_select = subparsers.add_parser('select',
+                               help="Select iMIS numbers: -i <file_path> [-n <num_to_pick> --resuse --backup]")
     parser_select.add_argument('-i', '--imis_file', dest='imis_file', required=True,
                                help='Fully specified file path to the iMIS data file in csv format.')
     parser_select.add_argument('-n', '--num', type=int, dest='num', default='10',
@@ -132,41 +130,22 @@ def parser():
                                help='If provided, re-use previously selected iMIS numbers.')
     parser_select.add_argument('-b', '--backup', action='store_true', dest='backup',
                                help='If provided, backup any altered iMIS data file.')
+    parser_select.add_argument('-v', '--version', action='version', version='%(prog)s '+str(__version__))
+    parser_select.add_argument('-vb', '--verbose', dest='verbose', type=int, nargs=1, default=0,
+                               choices=[0,1,2,3], help='Run verbosely, display more processing details.')
 
 
-    parser_merge = subparsers.add_parser('merge', help='Merge two iMIS data files together into one.')
+    parser_merge = subparsers.add_parser('merge',
+                                         help='Merge two iMIS data files together into one.')
     parser_merge.add_argument('-i', '--imis_file', type=str, dest='imis_file', required=True,
                               help='File path to the iMIS data file in csv format.')
     parser_merge.add_argument('-m', '--members', type=str, dest='member_file', required=True,
                               help='File path to the iMIS Member List generate by iMIS in csv format.')
     parser_merge.add_argument('-b', '--backup', action='store_true', dest='backup',
                               help='If provided, backup any altered iMIS data file.')
-
-    # Create a group to group the command-line arguments together
-    #mutex_group = parser.add_mutually_exclusive_group()
-
-    # # Group 1 is the arguments for selecting iMIS numbers
-    # group1 = mutex_group.add_argument_group('select', 'Select a set of active iMIS numbers.')
-    # group2 = mutex_group.add_argument_group('merge', 'Merge iMIS data files together.')
-    #
-    #
-    # group1.add_argument('-i', dest='imis_file',
-    #                     help='Fully specified file path to the iMIS data file in csv format.')
-    # group1.add_argument('-n', type=int, dest='num', default='10',
-    #                     help='Number of iMIS numbers to select.')
-    # group1.add_argument('-r', action='store_true', dest='reuse',
-    #                     help='If provided, re-use previously selected iMIS numbers.')
-    # group1.add_argument('-b', action='store_true', dest='backup',
-    #                     help='If provided, backup any altered iMIS data file.')
-
-    # Group 2 is for merging data files
-    #group2 = mutex_group.add_argument_group('merge')
-    #mutex_group.add_argument('-c', type=str, dest='current_imis_file',
-    #                    help='Fully specified file path to the iMIS data file in csv format.')
-    # group2.add_argument('-m', type=str, dest='imis_member_file',
-    #                     help='Fully specified file path to the iMIS Member List in csv format.')
-    # group2.add_argument('-k', action='store_true', dest='backup2',
-    #                     help='If provided, backup any altered iMIS data file.')
+    parser_merge.add_argument('-v', '--version', action='version', version='%(prog)s '+str(__version__))
+    parser_merge.add_argument('-vb', '--verbose', dest='verbose', type=int, nargs=1, default=0,
+                               choices=[0,1,2,3], help='Run verbosely, display more processing details.')
 
     return parser
 
