@@ -15,3 +15,7 @@ def capture():
         out[0] = out[0].getvalue()
         out[1] = out[1].getvalue()
 
+
+
+
+
