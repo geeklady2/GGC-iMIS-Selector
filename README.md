@@ -1,5 +1,5 @@
 # iMIS Selector
-## Girl Guides of Canada 
+Girl Guides of Canada 
 
 ## Overview
 This software selects a random number of individuals from a file
